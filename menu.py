@@ -1,9 +1,13 @@
+# Importaciones necesarias para el menú de terminal
 import os
 import helpers
 import database as db
 
 
 def iniciar():
+    """Inicia el menú principal de la aplicación en modo terminal.
+    Permite realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar)
+    sobre los clientes en la base de datos."""
     while True:
         helpers.limpiar_pantalla()
 
@@ -22,17 +26,20 @@ def iniciar():
         helpers.limpiar_pantalla()
 
         if opcion == '1':
+            # Mostrar todos los clientes registrados
             print("Listando los clientes...\n")
             for cliente in db.Clientes.lista:
                 print(cliente)
 
         elif opcion == '2':
+            # Buscar un cliente por su DNI
             print("Buscando un cliente...\n")
             dni = helpers.leer_texto(3, 3, "DNI (2 int y 1 char)").upper()
             cliente = db.Clientes.buscar(dni)
             print(cliente) if cliente else print("Cliente no encontrado.")
 
         elif opcion == '3':
+            # Añadir un nuevo cliente con validación de datos
             print("Añadiendo un cliente...\n")
 
             dni = None
@@ -47,6 +54,7 @@ def iniciar():
             print("Cliente añadido correctamente.")
 
         elif opcion == '4':
+            # Modificar los datos de un cliente existente
             print("Modificando un cliente...\n")
             dni = helpers.leer_texto(3, 3, "DNI (2 int y 1 char)").upper()
             cliente = db.Clientes.buscar(dni)
@@ -61,12 +69,14 @@ def iniciar():
                 print("Cliente no encontrado.")
 
         elif opcion == '5':
+            # Eliminar un cliente por su DNI
             print("Borrando un cliente...\n")
             dni = helpers.leer_texto(3, 3, "DNI (2 int y 1 char)").upper()
             print("Cliente borrado correctamente.") if db.Clientes.borrar(
                 dni) else print("Cliente no encontrado.")
 
         elif opcion == '6':
+            # Salir del programa
             print("Saliendo...\n")
             break
 

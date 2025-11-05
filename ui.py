@@ -1,12 +1,15 @@
-import helpers
-import database as db
+# Importaciones necesarias para la interfaz gráfica
 from tkinter import *
 from tkinter import ttk
 from tkinter.messagebox import askokcancel, WARNING
+import database as db
+import helpers
 
 
 class CenterWidgetMixin:
+    """Mixin para centrar ventanas en la pantalla."""
     def center(self):
+        """Centra la ventana en la pantalla calculando las coordenadas."""
         self.update()
         w = self.winfo_width()
         h = self.winfo_height()
@@ -18,6 +21,7 @@ class CenterWidgetMixin:
 
 
 class CreateClientWindow(Toplevel, CenterWidgetMixin):
+    """Ventana modal para crear un nuevo cliente."""
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Crear cliente")
@@ -27,13 +31,16 @@ class CreateClientWindow(Toplevel, CenterWidgetMixin):
         self.grab_set()
 
     def build(self):
+        """Construye la interfaz de la ventana de creación."""
         frame = Frame(self)
         frame.pack(padx=20, pady=10)
 
+        # Etiquetas para los campos
         Label(frame, text="DNI (2 ints y 1 upper char)").grid(row=0, column=0)
         Label(frame, text="Nombre (de 2 a 30 chars)").grid(row=0, column=1)
         Label(frame, text="Apellido (de 2 a 30 chars)").grid(row=0, column=2)
 
+        # Campos de entrada con validación en tiempo real
         dni = Entry(frame)
         dni.grid(row=1, column=0)
         dni.bind("<KeyRelease>", lambda event: self.validate(event, 0))
@@ -44,6 +51,7 @@ class CreateClientWindow(Toplevel, CenterWidgetMixin):
         apellido.grid(row=1, column=2)
         apellido.bind("<KeyRelease>", lambda event: self.validate(event, 2))
 
+        # Botones de acción
         frame = Frame(self)
         frame.pack(pady=10)
 
@@ -52,6 +60,7 @@ class CreateClientWindow(Toplevel, CenterWidgetMixin):
         crear.grid(row=0, column=0)
         Button(frame, text="Cancelar", command=self.close).grid(row=0, column=1)
 
+        # Almacenar referencias a los widgets
         self.validaciones = [0, 0, 0]
         self.crear = crear
         self.dni = dni
@@ -59,6 +68,7 @@ class CreateClientWindow(Toplevel, CenterWidgetMixin):
         self.apellido = apellido
 
     def create_client(self):
+        """Crea un nuevo cliente con los datos ingresados."""
         self.master.treeview.insert(
             parent='', index='end', iid=self.dni.get(),
             values=(self.dni.get(), self.nombre.get(), self.apellido.get()))
@@ -66,10 +76,12 @@ class CreateClientWindow(Toplevel, CenterWidgetMixin):
         self.close()
 
     def close(self):
+        """Cierra la ventana modal."""
         self.destroy()
         self.update()
 
     def validate(self, event, index):
+        """Valida los campos en tiempo real y actualiza el estado del botón crear."""
         valor = event.widget.get()
         valido = helpers.dni_valido(valor, db.Clientes.lista) if index == 0 \
             else (valor.isalpha() and len(valor) >= 2 and len(valor) <= 30)
@@ -80,6 +92,7 @@ class CreateClientWindow(Toplevel, CenterWidgetMixin):
 
 
 class EditClientWindow(Toplevel, CenterWidgetMixin):
+    """Ventana modal para editar un cliente existente."""
     def __init__(self, parent):
         super().__init__(parent)
         self.title("Actualizar cliente")
@@ -89,13 +102,16 @@ class EditClientWindow(Toplevel, CenterWidgetMixin):
         self.grab_set()
 
     def build(self):
+        """Construye la interfaz de la ventana de edición."""
         frame = Frame(self)
         frame.pack(padx=20, pady=10)
 
+        # Etiquetas para los campos
         Label(frame, text="DNI (no editable)").grid(row=0, column=0)
         Label(frame, text="Nombre (de 2 a 30 chars)").grid(row=0, column=1)
         Label(frame, text="Apellido (de 2 a 30 chars)").grid(row=0, column=2)
 
+        # Campos de entrada con validación
         dni = Entry(frame)
         dni.grid(row=1, column=0)
         nombre = Entry(frame)
@@ -105,6 +121,7 @@ class EditClientWindow(Toplevel, CenterWidgetMixin):
         apellido.grid(row=1, column=2)
         apellido.bind("<KeyRelease>", lambda event: self.validate(event, 1))
 
+        # Cargar datos del cliente seleccionado
         cliente = self.master.treeview.focus()
         campos = self.master.treeview.item(cliente, 'values')
         dni.insert(0, campos[0])
@@ -112,6 +129,7 @@ class EditClientWindow(Toplevel, CenterWidgetMixin):
         nombre.insert(0, campos[1])
         apellido.insert(0, campos[2])
 
+        # Botones de acción
         frame = Frame(self)
         frame.pack(pady=10)
 
@@ -119,6 +137,7 @@ class EditClientWindow(Toplevel, CenterWidgetMixin):
         actualizar.grid(row=0, column=0)
         Button(frame, text="Cancelar", command=self.close).grid(row=0, column=1)
 
+        # Almacenar referencias a los widgets
         self.validaciones = [1, 1]
         self.actualizar = actualizar
         self.dni = dni
@@ -126,6 +145,7 @@ class EditClientWindow(Toplevel, CenterWidgetMixin):
         self.apellido = apellido
 
     def edit_client(self):
+        """Actualiza los datos del cliente seleccionado."""
         cliente = self.master.treeview.focus()
         self.master.treeview.item(cliente, values=(
             self.dni.get(), self.nombre.get(), self.apellido.get()))
@@ -133,10 +153,12 @@ class EditClientWindow(Toplevel, CenterWidgetMixin):
         self.close()
 
     def close(self):
+        """Cierra la ventana modal."""
         self.destroy()
         self.update()
 
     def validate(self, event, index):
+        """Valida los campos en tiempo real y actualiza el estado del botón actualizar."""
         valor = event.widget.get()
         valido = (valor.isalpha() and len(valor) >= 2 and len(valor) <= 30)
         event.widget.configure({"bg": "Green" if valido else "Red"})
@@ -146,6 +168,7 @@ class EditClientWindow(Toplevel, CenterWidgetMixin):
 
 
 class MainWindow(Tk, CenterWidgetMixin):
+    """Ventana principal de la aplicación."""
     def __init__(self):
         super().__init__()
         self.title("Gestor de clientes")
@@ -153,9 +176,12 @@ class MainWindow(Tk, CenterWidgetMixin):
         self.center()
 
     def build(self):
+        """Construye la interfaz principal de la aplicación."""
+        # Crear el frame principal
         frame = Frame(self)
         frame.pack()
 
+        # Configurar el Treeview para mostrar los clientes
         treeview = ttk.Treeview(frame)
         treeview['columns'] = ('DNI', 'Nombre', 'Apellido')
 
@@ -168,17 +194,19 @@ class MainWindow(Tk, CenterWidgetMixin):
         treeview.heading("Nombre", text="Nombre", anchor=CENTER)
         treeview.heading("Apellido", text="Apellido", anchor=CENTER)
 
+        # Agregar scrollbar
         scrollbar = Scrollbar(frame)
         scrollbar.pack(side=RIGHT, fill=Y)
         treeview['yscrollcommand'] = scrollbar.set
 
+        # Cargar los clientes existentes
         for cliente in db.Clientes.lista:
-            treeview.insert(
-                parent='', index='end', iid=cliente.dni,
-                values=(cliente.dni, cliente.nombre, cliente.apellido))
+            treeview.insert(parent='', index='end', iid=cliente.dni,
+                        values=(cliente.dni, cliente.nombre, cliente.apellido))
 
         treeview.pack()
 
+        # Botones de acción
         frame = Frame(self)
         frame.pack(pady=20)
 
@@ -189,21 +217,23 @@ class MainWindow(Tk, CenterWidgetMixin):
         self.treeview = treeview
 
     def delete(self):
+        """Elimina el cliente seleccionado."""
         cliente = self.treeview.focus()
         if cliente:
-            campos = self.treeview.item(cliente, "values")
-            confirmar = askokcancel(
-                title="Confirmar borrado",
-                message=f"¿Borrar {campos[1]} {campos[2]}?",
-                icon=WARNING)
+            valores = self.treeview.item(cliente, 'values')
+            confirmar = askokcancel(title='Confirmar borrado',
+                                message=f'¿Borrar cliente {valores[1]} {valores[2]}?',
+                                icon=WARNING)
             if confirmar:
+                db.Clientes.borrar(valores[0])
                 self.treeview.delete(cliente)
-                db.Clientes.borrar(campos[0])
 
     def create(self):
+        """Abre la ventana de creación de cliente."""
         CreateClientWindow(self)
 
     def edit(self):
+        """Abre la ventana de edición para el cliente seleccionado."""
         if self.treeview.focus():
             EditClientWindow(self)
 
