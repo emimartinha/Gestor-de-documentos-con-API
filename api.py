@@ -65,7 +65,7 @@ async def clientes_crear(datos: ModeloCrearCliente):
         return JSONResponse(content={'dni':cliente.dni,'nombre':cliente.nombre,'apellido':cliente.apellido})
     raise HTTPException(status_code=404)
 
-@app.delete('clientes/borrar/{dni}/')
+@app.delete('/clientes/borrar/{dni}/')
 async def clientes_borrar(dni:str):
     if db.Clientes.buscar(dni):
         cliente = db.Clientes.borrar(dni=dni)
